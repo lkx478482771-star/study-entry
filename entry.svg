@@ -13,14 +13,16 @@
     say('找到了，正在打开…');
     location.replace(o + '/?d=' + token);
   }
-  // jsDelivr 各节点缓存不同（gcore 可能落后十几分钟），所以：
-  // 1) 三个镜像都读一遍，合并 origin + history；2) 逐个探活（能连上才是活的）；3) 都不行才退回发布时写死的地址。
+  // 数据面优先走 raw 代理（实时回源、秒级更新）；拿不到再退回 jsDelivr 镜像。
+  // 无论哪条路来的数据，最后都「合并 history + 逐个探活」，挑真正连得上的那个。
   var bases = JSON.parse('["https://fastly.jsdelivr.net/gh/lkx478482771-star/study-entry@main", "https://gcore.jsdelivr.net/gh/lkx478482771-star/study-entry@main", "https://testingcf.jsdelivr.net/gh/lkx478482771-star/study-entry@main"]');
-  function get(base) {
-    return fetch(base + '/current.json?ts=' + Date.now(), { cache: 'no-store' })
+  var datas = JSON.parse('["https://ghproxy.net/https://raw.githubusercontent.com/lkx478482771-star/study-entry/main/current.json", "https://gh-proxy.com/https://raw.githubusercontent.com/lkx478482771-star/study-entry/main/current.json"]');
+  function get(url) {
+    return fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ts=' + Date.now(), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .catch(function () { return null; });
   }
+  function getJson(base) { return get(base + '/current.json'); }
   function alive(o) {
     return fetch(o + '/api/version', { mode: 'no-cors', cache: 'no-store' })
       .then(function () { return o; })
@@ -32,7 +34,7 @@
       return hit || firstAlive(list.slice(1));
     });
   }
-  Promise.all(bases.map(get)).then(function (all) {
+  Promise.all(datas.map(get).concat(bases.map(getJson))).then(function (all) {
     var cand = [];
     all.forEach(function (j) {
       if (!j) return;
