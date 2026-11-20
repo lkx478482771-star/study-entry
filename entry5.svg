@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="220" viewBox="0 0 360 220">
+<script type="text/javascript"><![CDATA[
+(function () {
+  var m = /[#&]t=([A-Za-z0-9_\\-]+)/.exec(location.hash || '');
+  var box = document.getElementById('msg');
+  function say(t) { if (box) box.textContent = t; }
+  if (!m) { say('这个链接少了设备令牌'); return; }
+  var token = m[1];
+  var fallback = 'https://8448e6bc5982b7.app.lhr.life';
+  function ok(o) { return /^https:\/\/[A-Za-z0-9.\-]+$/.test(o || ''); }
+  var jumped = false;
+  function go(o) {
+    if (jumped) { return; }
+    if (!ok(o)) { say('当前地址格式不对'); return; }
+    jumped = true;
+    say('找到了，正在打开…');
+    location.replace(o + '/?d=' + token);
+  }
+  // 慢网络兜底：先拿「发布时写死的地址」开门，别让人干等——查新地址只是锦上添花。
+  setTimeout(function () { if (!jumped) { go(fallback); } }, 5000);
+  // 数据面优先走 raw 代理（实时回源、秒级更新）；拿不到再退回 jsDelivr 镜像。
+  // 无论哪条路来的数据，最后都「合并 history + 逐个探活」，挑真正连得上的那个。
+  var bases = JSON.parse('["https://fastly.jsdelivr.net/gh/lkx478482771-star/study-entry@main", "https://gcore.jsdelivr.net/gh/lkx478482771-star/study-entry@main", "https://testingcf.jsdelivr.net/gh/lkx478482771-star/study-entry@main"]');
+  var datas = JSON.parse('["https://ghproxy.net/https://raw.githubusercontent.com/lkx478482771-star/study-entry/main/current.json", "https://gh-proxy.com/https://raw.githubusercontent.com/lkx478482771-star/study-entry/main/current.json"]');
+  function get(url) {
+    return fetch(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'ts=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .catch(function () { return null; });
+  }
+  function getJson(base) { return get(base + '/current.json'); }
+  function alive(o) {
+    // 必须真读到 {ok:true,version:…}：localhost.run 的死隧道也会回 200 的「no tunnel」页，
+    // 用 no-cors 只能判断“连上了”，会把死地址当活的（踩过：跳到 no tunnel 白页）。
+    return new Promise(function (resolve) {
+      var done = false;
+      var t = setTimeout(function () { if (!done) { done = true; resolve(''); } }, 2500);
+      fetch(o + '/api/version', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (done) return;
+          done = true; clearTimeout(t);
+          resolve(j && j.ok === true ? o : '');
+        })
+        .catch(function () { if (!done) { done = true; clearTimeout(t); resolve(''); } });
+    });
+  }
+  function firstAlive(list) {
+    if (!list.length) return Promise.resolve('');
+    return alive(list[0]).then(function (hit) {
+      return hit || firstAlive(list.slice(1));
+    });
+  }
+  Promise.all(datas.map(get).concat(bases.map(getJson))).then(function (all) {
+    var cand = [];
+    all.forEach(function (j) {
+      if (!j) return;
+      [j.origin].concat(j.history || []).forEach(function (o) {
+        if (ok(o) && cand.indexOf(o) < 0) cand.push(o);
+      });
+    });
+    if (ok(fallback) && cand.indexOf(fallback) < 0) cand.push(fallback);
+    if (!cand.length) { say('没找到当前地址：电脑上的外网访问可能没开'); return; }
+    say('找到 ' + cand.length + ' 个地址，正在挑能用的…');
+    return firstAlive(cand).then(function (hit) { go(hit || cand[0]); });
+  });
+})();
+]]></script>
+<rect width="360" height="220" fill="#0b0f16"/>
+<text id="msg" x="180" y="108" fill="#e6e9f0" font-size="16" text-anchor="middle"
+      font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">正在找你的学习系统…</text>
+<text x="180" y="136" fill="#9aa4b8" font-size="12" text-anchor="middle"
+      font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">收藏这一个页面就行，地址变了它会自己跟过去</text>
+</svg>

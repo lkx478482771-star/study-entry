@@ -29,11 +29,18 @@
   }
   function getJson(base) { return get(base + '/current.json'); }
   function alive(o) {
+    // 必须真读到 {ok:true,version:…}：localhost.run 的死隧道也会回 200 的「no tunnel」页，
+    // 用 no-cors 只能判断“连上了”，会把死地址当活的（踩过：跳到 no tunnel 白页）。
     return new Promise(function (resolve) {
       var done = false;
       var t = setTimeout(function () { if (!done) { done = true; resolve(''); } }, 2500);
-      fetch(o + '/api/version', { mode: 'no-cors', cache: 'no-store' })
-        .then(function () { if (!done) { done = true; clearTimeout(t); resolve(o); } })
+      fetch(o + '/api/version', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (done) return;
+          done = true; clearTimeout(t);
+          resolve(j && j.ok === true ? o : '');
+        })
         .catch(function () { if (!done) { done = true; clearTimeout(t); resolve(''); } });
     });
   }
