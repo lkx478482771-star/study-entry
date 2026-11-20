@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="220" viewBox="0 0 360 220">
+<script type="text/javascript"><![CDATA[
+(function () {
+  var m = /[#&]t=([A-Za-z0-9_\-]+)/.exec(location.hash || '');
+  var box = document.getElementById('msg');
+  function say(t) { if (box) box.textContent = t; }
+  if (!m) { say('这个链接少了设备令牌'); return; }
+  var token = m[1];
+  var fallback = 'https://ea573b9fdca83f.app.lhr.life';
+  function ok(o) { return /^https:\/\/[A-Za-z0-9.\-]+$/.test(o || ''); }
+  function go(o) {
+    if (!ok(o)) { say('当前地址格式不对'); return; }
+    say('找到了，正在打开…');
+    location.replace(o + '/?d=' + token);
+  }
+  fetch('current.json?ts=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function (j) { go((j && j.origin) || ''); })
+    .catch(function () { if (ok(fallback)) { go(fallback); } else { say('没找到当前地址'); } });
+})();
+]]></script>
+<rect width="360" height="220" fill="#0b0f16"/>
+<text id="msg" x="180" y="108" fill="#e6e9f0" font-size="16" text-anchor="middle"
+      font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">正在找你的学习系统…</text>
+<text x="180" y="136" fill="#9aa4b8" font-size="12" text-anchor="middle"
+      font-family="-apple-system, PingFang SC, Microsoft YaHei, sans-serif">收藏这一个页面就行，地址变了它会自己跟过去</text>
+</svg>
