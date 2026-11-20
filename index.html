@@ -31,20 +31,15 @@
   var m = /[#&]t=([A-Za-z0-9_\-]+)/.exec(location.hash || '');
   if (!m) { fail('这个链接少了设备令牌'); return; }
   var token = m[1];
-  var fallback = 'https://8bfaa514145203.app.lhr.life';
-  function go(origin) {
-    if (!/^https:\/\/[A-Za-z0-9.\-]+$/.test(origin)) { fail('当前地址格式不对'); return; }
-    msg.textContent = '找到了，正在打开…';
-    location.replace(origin + '/?d=' + token);
-  }
   fetch('current.json?ts=' + Date.now(), { cache: 'no-store' })
     .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function (j) { go((j && j.origin) || ''); })
-    .catch(function () {
-      // 镜像缓存/同步失败时退回「发布时写进页面的那个地址」——旧地址可能已失效，但至少不白屏
-      if (/^https:\/\/[A-Za-z0-9.\-]+$/.test(fallback)) { go(fallback); return; }
-      fail('没找到当前地址：电脑上的外网访问可能没开');
-    });
+    .then(function (j) {
+      var origin = (j && j.origin) || '';
+      if (!/^https:\/\/[A-Za-z0-9.\-]+$/.test(origin)) { throw new Error('bad origin'); }
+      msg.textContent = '找到了，正在打开…';
+      location.replace(origin + '/?d=' + token);
+    })
+    .catch(function () { fail('没找到当前地址：电脑上的外网访问可能没开'); });
 })();
 </script>
 </html>
