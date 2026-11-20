@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="360" height="220" viewBox="0 0 360 220">
 <script type="text/javascript"><![CDATA[
 (function () {
-  var m = /[#&]t=([A-Za-z0-9_\-]+)/.exec(location.hash || '');
+  var m = /[#&]t=([A-Za-z0-9_\\-]+)/.exec(location.hash || '');
   var box = document.getElementById('msg');
   function say(t) { if (box) box.textContent = t; }
   if (!m) { say('这个链接少了设备令牌'); return; }
