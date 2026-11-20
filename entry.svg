@@ -17,7 +17,7 @@
     location.replace(o + '/?d=' + token);
   }
   // 慢网络兜底：先拿「发布时写死的地址」开门，别让人干等——查新地址只是锦上添花。
-  setTimeout(function () { if (!jumped) { go(fallback); } }, 5000);
+  setTimeout(function () { if (!jumped) { go(fallback); } }, 10000);
   // 数据面优先走 raw 代理（实时回源、秒级更新）；拿不到再退回 jsDelivr 镜像。
   // 无论哪条路来的数据，最后都「合并 history + 逐个探活」，挑真正连得上的那个。
   var bases = JSON.parse('["https://fastly.jsdelivr.net/gh/lkx478482771-star/study-entry@main", "https://gcore.jsdelivr.net/gh/lkx478482771-star/study-entry@main", "https://testingcf.jsdelivr.net/gh/lkx478482771-star/study-entry@main"]');
@@ -33,7 +33,7 @@
     // 用 no-cors 只能判断“连上了”，会把死地址当活的（踩过：跳到 no tunnel 白页）。
     return new Promise(function (resolve) {
       var done = false;
-      var t = setTimeout(function () { if (!done) { done = true; resolve(''); } }, 2500);
+      var t = setTimeout(function () { if (!done) { done = true; resolve(''); } }, 2000);
       fetch(o + '/api/version', { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (j) {
