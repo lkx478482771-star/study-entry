@@ -31,7 +31,7 @@
   var m = /[#&]t=([A-Za-z0-9_\-]+)/.exec(location.hash || '');
   if (!m) { fail('这个链接少了设备令牌'); return; }
   var token = m[1];
-  var fallback = 'https://8e6b85238ff75a.app.lhr.life';
+  var fallback = 'https://2373a2bc60a71f.app.lhr.life';
   function go(origin) {
     if (!/^https:\/\/[A-Za-z0-9.\-]+$/.test(origin)) { fail('当前地址格式不对'); return; }
     msg.textContent = '找到了，正在打开…';
