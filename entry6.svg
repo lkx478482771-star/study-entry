@@ -6,7 +6,7 @@
   function say(t) { if (box) box.textContent = t; }
   if (!m) { say('这个链接少了设备令牌'); return; }
   var token = m[1];
-  var fallback = 'https://824b945accc235.app.lhr.life';
+  var fallback = 'https://f1f78a0c333de7.app.lhr.life';
   function ok(o) { return /^https:\/\/[A-Za-z0-9.\-]+$/.test(o || ''); }
   var jumped = false;
   function go(o) {
